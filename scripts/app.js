@@ -6,10 +6,13 @@ const details = document.querySelector(".details");
 const time = document.querySelector("img.time");
 const icon = document.querySelector(".icon img");
 
+const forecast = new Forecast();
+
+// ======> UPDATE UI <======
+
 const updateUI = (data) => {
   // destructure data properties
   const { cityDetails, weather } = data;
-
   // update details template
   details.innerHTML = `
     <h5 class="my-3">${cityDetails.EnglishName}</h5>
@@ -19,46 +22,38 @@ const updateUI = (data) => {
         <span>&deg;C</span>
     </div>
   `;
-
   // update the night/day & icon images
   const iconSrc = `img/icons/${weather.WeatherIcon}.svg`;
   icon.setAttribute("src", iconSrc);
-
   let timeSrc = weather.IsDayTime ? "img/day.svg" : "img/night.svg"; // ternary operator
   time.setAttribute("src", timeSrc);
-
   // remove the d-none class if present
   if (card.classList.contains("d-none")) {
     card.classList.remove("d-none");
   }
 };
 
-const updateCity = async (city) => {
-  const cityDetails = await getCity(city);
-  const weather = await getWeather(cityDetails.Key);
-
-  return { cityDetails, weather };
-};
+// ======> CITY FORM EVENT LISTENER  <======
 
 cityForm.addEventListener("submit", (e) => {
   // prevent default action (reload page)
   e.preventDefault();
-
   // get city value
   const city = cityForm.city.value.trim();
   cityForm.reset();
-
   // update the ui with the new city
-  updateCity(city)
+  // add updateCity is now a method on forecast
+  forecast.updateCity(city)
     .then((data) => updateUI(data))
     .catch((err) => console.log(err));
-
   //set local storage
   localStorage.setItem("city", city);
 });
 
+// ======> LOCAL STORAGE <======
+
 if (localStorage.getItem("city")) {
-  updateCity(localStorage.getItem("city"))
+  forecast.updateCity(localStorage.getItem("city"))
     .then((data) => updateUI(data))
     .catch((err) => console.log(err));
 }
